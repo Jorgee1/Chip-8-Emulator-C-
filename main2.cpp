@@ -584,7 +584,7 @@ int main( int argc, char* args[] )
     bool Salir = false;
     initscr();
     Init inicio;
-    while(getch() !='a'){}
+    //while(getch() !='a'){}
     cargador();
     printV();
 
