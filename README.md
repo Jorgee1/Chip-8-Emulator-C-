@@ -1,5 +1,8 @@
 
 # Chip-8-Emulator-C-
+
+[![Build Status](https://travis-ci.org/Jorgee1/Emulador_Chip-8.svg?branch=master)](https://travis-ci.org/Jorgee1/Emulador_Chip-8)
+
 Emulador del Chip 8 en  C++
 
 Para utilizarlo se nesesita la libreria SDL2.0 (https://www.libsdl.org/). La guia de LazyFoo explica como ajustar el entorno de programacion para desarrolar. http://lazyfoo.net/tutorials/SDL/index.php
