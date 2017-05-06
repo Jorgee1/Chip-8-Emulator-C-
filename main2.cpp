@@ -588,6 +588,8 @@ int main( int argc, char* args[] )
     cargador();
     printV();
 
+        cout << "Travis" << endl;
+
     while(Salir == false)
     {
         SDL_RenderClear(RenderP);

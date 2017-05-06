@@ -64,7 +64,7 @@
 1490276154 source:/home/jorge/Proyect_C++/Chip_8L/Event.cpp
 	"Event.h"
 
-1490089474 source:/home/jorge/Proyects/C++/Chip_8L/Entity.cpp
+1492688219 source:/home/jorge/Proyects/C++/Chip_8L/Entity.cpp
 	"Entity.h"
 
 1490089474 /home/jorge/Proyects/C++/Chip_8L/Entity.h
@@ -132,7 +132,7 @@
 1490089472 source:/home/jorge/Proyects/C++/Chip_8L/Textura.cpp
 	"Textura.h"
 
-1490294695 source:/home/jorge/Proyects/C++/Chip_8L/main2.cpp
+1492688268 source:/home/jorge/Proyects/C++/Chip_8L/main2.cpp
 	<SDL2/SDL.h>
 	<SDL2/SDL_ttf.h>
 	<SDL2/SDL_image.h>

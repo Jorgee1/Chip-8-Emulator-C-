@@ -12,12 +12,12 @@ Entity::Entity(int val1, int val2, int height, int width ){
     Entity_Rect.w = width;
 
     CreateEntity_Texture();
-}
+} 
 
 int Entity::Get_x(){
     return x;
 }
-
+// Travis asdf
 int Entity::Get_y(){
     return y;
 }
