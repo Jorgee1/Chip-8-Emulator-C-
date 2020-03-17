@@ -37,4 +37,5 @@
 *.app
 
 build/
+rom/
 # End of https://www.gitignore.io/api/c++
