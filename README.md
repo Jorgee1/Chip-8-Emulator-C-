@@ -1,14 +1,17 @@
+# Chip 8 Emulator C++
 
-# Chip-8-Emulator-C-
+Chip 8 emulator written in C++ as a programing exercise.
 
-[![Build Status](https://travis-ci.org/Jorgee1/Emulador_Chip-8.svg?branch=master)](https://travis-ci.org/Jorgee1/Emulador_Chip-8)
+## Dependencies requires:
 
-Emulador del Chip 8 en  C++
+* SDL2
+* SDL2_TTF
+* SDL2_image
 
-Para utilizarlo se nesesita la libreria SDL2.0 (https://www.libsdl.org/). La guia de LazyFoo explica como ajustar el entorno de programacion para desarrolar. http://lazyfoo.net/tutorials/SDL/index.php
+## Comiplation
+
+It is recomended to compile the program with Clang in linux, for windows MSVC is a must.
 
 
-[1]L.  Muller, "How to write an emulator (CHIP-8 interpreter) | Multigesture.net", Multigesture.net, 2011. [Online]. 
 
-Available: http://www.multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/. [Accessed: 24- Mar- 2017].
 
