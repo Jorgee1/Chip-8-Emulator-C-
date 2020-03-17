@@ -511,6 +511,18 @@ int main( int argc, char* args[] ){
             );
             layout_y += TEXT_SIZE;
             
+            text_white.render(
+                AnchoP, layout_y,
+                "TIMER_D:" + to_format_str("0x%04X", delay_timer)
+            );
+            layout_y += TEXT_SIZE;
+            
+            text_white.render(
+                AnchoP, layout_y,
+                "TIMER_S:" + to_format_str("0x%04X", sound_timer)
+            );
+            layout_y += TEXT_SIZE;
+            
             for(int i=0; i<16; i++){
                 text_white.render(
                     AnchoP, layout_y,
