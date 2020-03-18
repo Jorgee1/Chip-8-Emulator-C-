@@ -106,14 +106,14 @@ int main( int argc, char* args[] ){
         fseek(rom , 0 , SEEK_END);
         int buffersize = ftell(rom);
         rewind(rom);
-        char * buffer = (char*) malloc(sizeof(char)*buffersize);
+        char* buffer = (char*) malloc(sizeof(char)*buffersize);
         fread(buffer,1,buffersize,rom);
         for(int i=0;i<buffersize;i++){
             Memory[i+PC] = buffer[i];
         }
         free(buffer);
+        fclose(rom);
     }
-    free(rom);
 
 
 
