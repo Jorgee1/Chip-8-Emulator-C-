@@ -35,9 +35,9 @@ int main( int argc, char* args[] ){
     unsigned char Memory[4096];
     unsigned char V[16];
     int Stack[16];
-    int Chip8_pantalla[emuW][emuH];
     int Key[16];
-
+    uint64_t Chip8_pantalla[emuH]; // 4 bytes
+    
     unsigned char chip8_fontset[80] = {
         0xF0, 0x90, 0x90, 0x90, 0xF0, //0
         0x20, 0x60, 0x20, 0x20, 0x70, //1
@@ -69,18 +69,8 @@ int main( int argc, char* args[] ){
         LOAD MEMORY
     */
 
-    for(
-        int index_y = 0;
-        index_y < emuH;
-        index_y++
-    ){
-        for(
-            int index_x = 0;
-            index_x < emuW;
-            index_x++
-        ){
-            Chip8_pantalla[index_x][index_y] = 0;
-        }
+    for(int y = 0;y < emuH;y++){
+        Chip8_pantalla[y] = 0;
     }
 
     for(int i=0; i<16;i++){
@@ -100,7 +90,7 @@ int main( int argc, char* args[] ){
     }
 
 
-    FILE* rom = fopen("asset/rom/PONG","rb");
+    FILE* rom = fopen("asset/rom/PONG2","rb");
     
     if(rom){
         fseek(rom , 0 , SEEK_END);
@@ -178,319 +168,299 @@ int main( int argc, char* args[] ){
             window.clear_screen();
 
             opcode = Memory[PC] << 8 | Memory[PC+1];
+            if(
+                (action->check_action(action->BUTTON_ACTION)) ||
+                (action->get_state(action->BUTTON_START))
+            ){
+                
+                switch(opcode&0xF000){
 
-            switch(opcode&0xF000){
-
-                case 0x0000:{
-                    switch(opcode&0x0FFF){
-                        case 0x00E0:
-
-                            for(
-                                int index_y = 0;
-                                index_y < emuH;
-                                index_y++
-                            ){
-                                for(
-                                    int index_x = 0;
-                                    index_x < emuW;
-                                    index_x++
-                                ){
-                                    Chip8_pantalla[index_x][index_y] = 0;
+                    case 0x0000:{
+                        switch(opcode&0x0FFF){
+                            case 0x00E0:
+                                for(int y = 0;y < emuH;y++){
+                                    Chip8_pantalla[y] = 0;
                                 }
-                            }
-                           
-                            PC+=2;
-                            break;
-                        case 0x00EE:
-                            StackP--;
-                            PC = Stack[StackP];
-                            Stack[StackP] = 0x0000;
-                            PC+=2;
-                            break;
-                    }
-                    break;
-                }
-
-                case 0xA000:{
-                    INDEX = opcode&0x0FFF;
-                    PC+=2;
-                    break;
-                }
-
-                case 0xB000:{
-                    PC = V[0] + (opcode&0x0FFF);
-                    break;
-                }
-
-                case 0xC000:{
-                    int x = (rand () % 255);
-                    V[(opcode & 0x0F00) >> 8] = x & (opcode & 0x00FF);
-                    PC+=2;
-                    break;
-                }
-
-                case 0xD000:{
-
-                    int x = (opcode & 0x0F00)>>8;
-                    int y = (opcode & 0x00F0)>>4;
-                    int n = (opcode & 0x000F);
-                    
-                    V[0xF] = 0x0;
-                    
-	                int x_cor = V[x];
-                    int y_cor = V[y];
-
-
-                    unsigned char temp_char = '0';
-                    unsigned char numb = '0';
-                    int mask = 7;
-                    
-
-                    for(int i=0; i<n; i++){
-                    
-                    
-                        x_cor = V[x];
-                        temp_char = Memory[INDEX+i];
-		                if (y_cor>=emuH){
-		                    y_cor = y_cor - emuH*(y_cor/(emuH-1));
-		                }
-			            mask = 7;
-                        
-			            
-                        for(int j = 128;j>=1;j=j/2){
-                            numb = (temp_char&j)>>mask;
-                            if(x_cor < emuW){
-                                if(Chip8_pantalla[x_cor][y_cor] == numb){
-                                    if(Chip8_pantalla[x_cor][y_cor] == 1){
-                                        V[0xF] = 0x1;
-                                    }
-                                    Chip8_pantalla[x_cor][y_cor] = 0;
-                                }else{
-                                    Chip8_pantalla[x_cor][y_cor] = 1;
-                                }
-                                x_cor+=1;
-                                mask--;
-                            }
-
-                        }
-                        y_cor+=1;
-
-                        
-                    }                       
-
-                    PC+=2;
-                    break;
-                }
-                case 0xE000:{
-                    switch(opcode&0x00FF){
-                        case 0x00A1:
-                            if(Key[V[(opcode&0x0F00)>>8]]==1){
+                               
                                 PC+=2;
-                            }
-                            break;
-                        case 0x009E:
-                            if(Key[V[(opcode&0x0F00)>>8]]!=1){
-                               PC+=2;
-                            }
-                            break;
-                    }
-                    PC+=2;
-                    break;
-                }
-
-                case 0xF000:{
-                    switch(opcode&0x00FF){
-                        case 0x0007:
-                            //V[(opcode&0x0F00)>>8] = delay_timer;
-                            V[(opcode&0x0F00)>>8] = 0;
-                            break;
-                        case 0x000A: break;
-                        case 0x0015: delay_timer = V[(opcode&0x0F00)>>8];break;
-                        case 0x0018: break;
-
-                        case 0x001E:
-                            INDEX = INDEX+V[(opcode&0x0F00)>>8];
-                            break;
-
-                        case 0x0029:
-                            INDEX = V[(opcode&0x0F00)>>8]*0x5;
-                            break;
-
-                        case 0x0033:
-                            {
-                                int x = (opcode&0x0F00)>>8;
-                                
-                                int TEN = V[x]/100;
-                                int HUN = (V[x]/10) - TEN*10;
-                                int DEC = V[x] - HUN*10 - TEN*100;
-                            
-                                Memory[INDEX  ] = TEN;
-                                Memory[INDEX+1] = HUN;
-                                Memory[INDEX+2] = DEC;
                                 break;
-                            }
-                        case 0x0055:
-                            for(int i=0;i<=((opcode&0x0F00)>>8);i++){
+                            case 0x00EE:
+                                StackP--;
+                                PC = Stack[StackP];
+                                Stack[StackP] = 0x0000;
+                                PC+=2;
+                                break;
+                        }
+                        break;
+                    }
 
-                                //Memory[INDEX+i] = V[i];
-                            }
-                            break;
+                    case 0xA000:{
+                        INDEX = opcode&0x0FFF;
+                        PC+=2;
+                        break;
+                    }
 
-                        case 0x0065:
-                            {
-                                int x = (opcode&0x0F00)>>8;
-                                for(int i=0;i<=x;i++){
-                                    V[i] = Memory[INDEX+i];
+                    case 0xB000:{
+                        PC = V[0] + (opcode&0x0FFF);
+                        break;
+                    }
+
+                    case 0xC000:{
+                        int x = (rand () % 255);
+                        V[(opcode & 0x0F00) >> 8] = x & (opcode & 0x00FF);
+                        PC+=2;
+                        break;
+                    }
+
+                    case 0xD000:{
+
+                        unsigned int x = V[(opcode & 0x0F00)>>8];
+                        unsigned int y = V[(opcode & 0x00F0)>>4];
+                        unsigned int n = (opcode & 0x000F);
+
+
+                        uint64_t temp_char = 0;
+                        V[0xF] = 0x0;
+                        
+                        
+                        for(int i=0; i<n; i++){
+                        
+		                    if (y+i>=emuH){
+		                        y = y - i - emuH*(y/(emuH-1));
+		                    }
+
+		                    temp_char = (uint64_t)Memory[INDEX+i];
+		                    printf(
+		                        "0x%017X, 0x%017X, %i\n",
+		                        Chip8_pantalla[y+i],
+		                        (temp_char<<25),
+		                        x
+		                    );
+		                    Chip8_pantalla[y+i] = Chip8_pantalla[y+i] ^ 
+		                        ((uint64_t)Memory[INDEX+i]<<emuW-x-8); 
+
+		                    printf(
+		                        "0x%017X\n",
+		                        Chip8_pantalla[y+i]
+		                    );
+
+
+                            
+                        }                       
+                        printf("--------------------------------\n");
+                        PC+=2;
+                        break;
+                    }
+                    case 0xE000:{
+                        switch(opcode&0x00FF){
+                            case 0x00A1:
+                                if(Key[V[(opcode&0x0F00)>>8]]==1){
+                                    PC+=2;
                                 }
                                 break;
+                            case 0x009E:
+                                if(Key[V[(opcode&0x0F00)>>8]]!=1){
+                                   PC+=2;
+                                }
+                                break;
+                        }
+                        PC+=2;
+                        break;
+                    }
+
+                    case 0xF000:{
+                        switch(opcode&0x00FF){
+                            case 0x0007:
+                                //V[(opcode&0x0F00)>>8] = delay_timer;
+                                V[(opcode&0x0F00)>>8] = 0;
+                                break;
+                            case 0x000A: break;
+                            case 0x0015: delay_timer = V[(opcode&0x0F00)>>8];break;
+                            case 0x0018: break;
+
+                            case 0x001E:
+                                INDEX = INDEX+V[(opcode&0x0F00)>>8];
+                                break;
+
+                            case 0x0029:
+                                INDEX = V[(opcode&0x0F00)>>8]*0x5;
+                                break;
+
+                            case 0x0033:
+                                {
+                                    int x = (opcode&0x0F00)>>8;
+                                    
+                                    int TEN = V[x]/100;
+                                    int HUN = (V[x]/10) - TEN*10;
+                                    int DEC = V[x] - HUN*10 - TEN*100;
+                                
+                                    Memory[INDEX  ] = TEN;
+                                    Memory[INDEX+1] = HUN;
+                                    Memory[INDEX+2] = DEC;
+                                    break;
+                                }
+                            case 0x0055:
+                                for(int i=0;i<=((opcode&0x0F00)>>8);i++){
+
+                                    //Memory[INDEX+i] = V[i];
+                                }
+                                break;
+
+                            case 0x0065:
+                                {
+                                    int x = (opcode&0x0F00)>>8;
+                                    for(int i=0;i<=x;i++){
+                                        V[i] = Memory[INDEX+i];
+                                    }
+                                    break;
+                                }
+
+                        }
+                        PC+=2;
+                        break;
+                    }
+
+                    case 0x1000:{
+                        PC = (opcode&0x0FFF);
+                        break;
+                    }
+
+                    case 0x2000:{
+                        Stack[StackP] = PC;
+                        StackP++;
+                        PC = opcode&0x0FFF;
+                        break;
+                    }
+
+                    case 0x3000:{
+                        if( V[(opcode&0x0F00)>>8] == (opcode&0x00FF) ){
+                            PC+=2;
+                        }
+                        PC+=2;
+                        break;
+                    }
+
+                    case 0x4000:{
+                        if( V[(opcode&0x0F00)>>8] != (opcode&0x00FF)){
+                            PC+=2;
+                        }
+                        PC+=2;
+                        break;
+                    }
+
+                    case 0x5000:{
+                        if(V[(opcode&0x0F00)>>8]==V[(opcode&0x00F0)>>4]){
+                            PC+=2;
+                        }
+                        PC+=2;
+                        break;
+                    }
+
+                    case 0x6000:{
+                        V[(opcode&0x0F00)>>8] = (opcode&0x00FF);
+                        PC+=2;
+                        break;
+                    }
+
+                    case 0x7000:{
+                        V[(opcode&0x0F00)>>8] = (V[(opcode&0x0F00)>>8]+(opcode&0x00FF))&0xFF;
+                        PC+=2;
+                        break;
+                    }
+
+                    /// ALU /////////////////////////
+                    case 0x8000:{
+                        switch(opcode&0x000F){
+
+                            case 0x0000:{
+                                V[(opcode&0x0F00)>>8] = V[(opcode&0x00F0)>>4];
+                                break;
                             }
 
-                    }
-                    PC+=2;
-                    break;
-                }
-
-                case 0x1000:{
-                    PC = (opcode&0x0FFF);
-                    break;
-                }
-
-                case 0x2000:{
-                    Stack[StackP] = PC;
-                    StackP++;
-                    PC = opcode&0x0FFF;
-                    break;
-                }
-
-                case 0x3000:{
-                    if( V[(opcode&0x0F00)>>8] == (opcode&0x00FF) ){
-                        PC+=2;
-                    }
-                    PC+=2;
-                    break;
-                }
-
-                case 0x4000:{
-                    if( V[(opcode&0x0F00)>>8] != (opcode&0x00FF)){
-                        PC+=2;
-                    }
-                    PC+=2;
-                    break;
-                }
-
-                case 0x5000:{
-                    if(V[(opcode&0x0F00)>>8]==V[(opcode&0x00F0)>>4]){
-                        PC+=2;
-                    }
-                    PC+=2;
-                    break;
-                }
-
-                case 0x6000:{
-                    V[(opcode&0x0F00)>>8] = (opcode&0x00FF);
-                    PC+=2;
-                    break;
-                }
-
-                case 0x7000:{
-                    V[(opcode&0x0F00)>>8] = (V[(opcode&0x0F00)>>8]+(opcode&0x00FF))&0xFF;
-                    PC+=2;
-                    break;
-                }
-
-                /// ALU /////////////////////////
-                case 0x8000:{
-                    switch(opcode&0x000F){
-
-                        case 0x0000:{
-                            V[(opcode&0x0F00)>>8] = V[(opcode&0x00F0)>>4];
-                            break;
-                        }
-
-                        case 0x0001:{
-                            V[(opcode&0x0F00)>>8] = V[(opcode&0x0F00)>>8] | V[(opcode&0x00F0)>>4];
-                            break;
-                        }
-
-                        case 0x0002:{
-                            V[(opcode&0x0F00)>>8] = V[(opcode&0x0F00)>>8] & V[(opcode&0x00F0)>>4];
-                            break;
-                        }
-
-                        case 0x0003:{
-                            V[(opcode&0x0F00)>>8] = V[(opcode&0x0F00)>>8] ^ V[(opcode&0x00F0)>>4];
-                            break;
-                        }
-
-                        case 0x0004:{
-                            int x1 = V[(opcode&0x0F00)>>8]&0xFF;
-                            int y1 = V[(opcode&0x00F0)>>4]&0xFF;
-                            int z = 0;                                                                          /// add
-                            if( (x1+y1) > 0xFF ){
-                                V[0xF] = 0x01;
-                            }else{
-                                V[0xF] = 0x00;
+                            case 0x0001:{
+                                V[(opcode&0x0F00)>>8] = V[(opcode&0x0F00)>>8] | V[(opcode&0x00F0)>>4];
+                                break;
                             }
-                            z = ( x1 + y1 )&0xFF;
-                            V[(opcode&0x0F00)>>8] = z;
-                            break;
-                        }
 
-                        case 0x0005:{
-                            int x2 = V[(opcode&0x0F00)>>8]&0xFF;
-                            int y2 = V[(opcode&0x00F0)>>4]&0xFF;                                                                           /// sub
-                            if( x2 > y2){
-                                V[0xF] = 0x01;
-                            }else{
-                                V[0xF] = 0x00;
+                            case 0x0002:{
+                                V[(opcode&0x0F00)>>8] = V[(opcode&0x0F00)>>8] & V[(opcode&0x00F0)>>4];
+                                break;
                             }
-                            V[(opcode&0x0F00)>>8] = (V[(opcode&0x0F00)>>8] - V[(opcode&0x00F0)>>4])&0xFF;
-                            break;
-                        }
 
-                        case 0x0006:{                                                                               /// div2
-                            V[0xF] = (V[(opcode&0x0F00)>>8]&0x01);
-                            V[(opcode&0x0F00)>>8] = V[(opcode&0x0F00)>>8] >> 1;
-                            break;
-                        }
-
-                        case 0x0007:{
-                            int x3 = V[(opcode&0x00F0)>>4]&0xFF;
-                            int y3 = V[(opcode&0x0F00)>>8]&0xFF;                                                                      /// sub
-                            if( y3 > x3){
-                                V[0xF] = 0x01;
-                            }else{
-                                V[0xF] = 0x00;
+                            case 0x0003:{
+                                V[(opcode&0x0F00)>>8] = V[(opcode&0x0F00)>>8] ^ V[(opcode&0x00F0)>>4];
+                                break;
                             }
-                            V[(opcode&0x0F00)>>8] = (V[(opcode&0x00F0)>>8] - V[(opcode&0x0F00)>>4])&0xFF;
-                            break;
+
+                            case 0x0004:{
+                                int x1 = V[(opcode&0x0F00)>>8]&0xFF;
+                                int y1 = V[(opcode&0x00F0)>>4]&0xFF;
+                                int z = 0;                                                                          /// add
+                                if( (x1+y1) > 0xFF ){
+                                    V[0xF] = 0x01;
+                                }else{
+                                    V[0xF] = 0x00;
+                                }
+                                z = ( x1 + y1 )&0xFF;
+                                V[(opcode&0x0F00)>>8] = z;
+                                break;
+                            }
+
+                            case 0x0005:{
+                                int x2 = V[(opcode&0x0F00)>>8]&0xFF;
+                                int y2 = V[(opcode&0x00F0)>>4]&0xFF;                                                                           /// sub
+                                if( x2 > y2){
+                                    V[0xF] = 0x01;
+                                }else{
+                                    V[0xF] = 0x00;
+                                }
+                                V[(opcode&0x0F00)>>8] = (V[(opcode&0x0F00)>>8] - V[(opcode&0x00F0)>>4])&0xFF;
+                                break;
+                            }
+
+                            case 0x0006:{                                                                               /// div2
+                                V[0xF] = (V[(opcode&0x0F00)>>8]&0x01);
+                                V[(opcode&0x0F00)>>8] = V[(opcode&0x0F00)>>8] >> 1;
+                                break;
+                            }
+
+                            case 0x0007:{
+                                int x3 = V[(opcode&0x00F0)>>4]&0xFF;
+                                int y3 = V[(opcode&0x0F00)>>8]&0xFF;                                                                      /// sub
+                                if( y3 > x3){
+                                    V[0xF] = 0x01;
+                                }else{
+                                    V[0xF] = 0x00;
+                                }
+                                V[(opcode&0x0F00)>>8] = (V[(opcode&0x00F0)>>8] - V[(opcode&0x0F00)>>4])&0xFF;
+                                break;
+                            }
+
+                            case 0x000E:{                                                                                 /// mult*2
+                                V[0xF] = ((V[(opcode&0x0F00)>>8]&0x80)>>7);
+                                V[(opcode&0x0F00)>>8] = (V[(opcode&0x0F00)>>8] << 1)&0xFF;
+                                break;
+                            }
+
                         }
-
-                        case 0x000E:{                                                                                 /// mult*2
-                            V[0xF] = ((V[(opcode&0x0F00)>>8]&0x80)>>7);
-                            V[(opcode&0x0F00)>>8] = (V[(opcode&0x0F00)>>8] << 1)&0xFF;
-                            break;
-                        }
-
-                    }
-                    PC+=2;
-                    break;
-                }
-                /// ALU /////////////////////////
-
-                case 0x9000:{
-                    if( V[(opcode&0x0F00)>>8] != V[(opcode&0x00F0)>>4] ){
                         PC+=2;
+                        break;
                     }
-                    PC+=2;
-                    break;
-                }
+                    /// ALU /////////////////////////
 
+                    case 0x9000:{
+                        if( V[(opcode&0x0F00)>>8] != V[(opcode&0x00F0)>>4] ){
+                            PC+=2;
+                        }
+                        PC+=2;
+                        break;
+                    }
+
+                }
+                if(delay_timer > 0){
+                    delay_timer--;
+                }
             }
-            if(delay_timer > 0){
-                delay_timer--;
-            }
-
             
             /*
                 Render Grafics
@@ -573,31 +543,26 @@ int main( int argc, char* args[] ){
 
                 layout_y += TEXT_SIZE;
             }
-            
-            
-            for(
-                int index_y = 0;
-                index_y < emuH;
-                index_y++
-            ){
-                for(
-                    int index_x = 0;
-                    index_x < emuW;
-                    index_x++
-                ){
-                    if(Chip8_pantalla[index_x][index_y] == 0){
+            std::bitset <64> temp_screen;
+            for(int y = 0;y < emuH;y++){
+                temp_screen = std::bitset <64>(Chip8_pantalla[y]);
+                //printf("%s\n", std::bitset <64>(Chip8_pantalla[y]).to_string().c_str());
+                for(int x = 0;x < emuW; x++){
+                    if(temp_screen[emuW-x] == 0){
                         block_black.render(
-                            index_x*upscale,
-                            index_y*upscale
+                            x*upscale,
+                            y*upscale
                         );
                     }else{
                         block_white.render(
-                            index_x*upscale,
-                            index_y*upscale
+                            x*upscale,
+                            y*upscale
                         );
                     }
                 }
             }
+            //printf("--------------------------------\n");
+            
             
             if((action->get_state(action->BUTTON_MOVE_UP))&&(scrollIndex>0)){
                 scrollIndex--;
@@ -608,7 +573,6 @@ int main( int argc, char* args[] ){
             window.update_screen();
         }
     }
-    
     return 0;
 }
 
