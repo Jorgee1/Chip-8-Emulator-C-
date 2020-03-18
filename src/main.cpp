@@ -2,10 +2,8 @@
 #include <SDL_ttf.h>
 #include <SDL_image.h>
 
-#include <iostream>
 #include <string>
 #include <bitset>
-#include <unistd.h>
 
 #include "window.h"
 #include "texture.h"
@@ -102,7 +100,7 @@ int main( int argc, char* args[] ){
     }
 
 
-    FILE* room = fopen("asset/rom/PON","rb");
+    FILE* room = fopen("asset/rom/PONG","rb");
     
     if(room){
         fseek (room , 0 , SEEK_END);
