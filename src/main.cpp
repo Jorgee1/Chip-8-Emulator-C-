@@ -100,18 +100,20 @@ int main( int argc, char* args[] ){
     }
 
 
-    FILE* room = fopen("asset/rom/PONG","rb");
+    FILE* rom = fopen("asset/rom/PONG","rb");
     
-    if(room){
-        fseek (room , 0 , SEEK_END);
-        int buffersize = ftell(room);
-        rewind(room);
-        char * buffer = (char*) malloc (sizeof(char)*buffersize);
-        fread (buffer,1,buffersize,room);
+    if(rom){
+        fseek(rom , 0 , SEEK_END);
+        int buffersize = ftell(rom);
+        rewind(rom);
+        char * buffer = (char*) malloc(sizeof(char)*buffersize);
+        fread(buffer,1,buffersize,rom);
         for(int i=0;i<buffersize;i++){
             Memory[i+PC] = buffer[i];
         }
+        free(buffer);
     }
+    free(rom);
 
 
 
