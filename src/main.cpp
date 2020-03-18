@@ -102,15 +102,19 @@ int main( int argc, char* args[] ){
     }
 
 
-    FILE* room = fopen("asset/rom/PONG2","rb");
-    fseek (room , 0 , SEEK_END);
-    int buffersize = ftell(room);
-    rewind(room);
-    char * buffer = (char*) malloc (sizeof(char)*buffersize);
-    fread (buffer,1,buffersize,room);
-    for(int i=0;i<buffersize;i++){
-        Memory[i+PC] = buffer[i];
+    FILE* room = fopen("asset/rom/PON","rb");
+    
+    if(room){
+        fseek (room , 0 , SEEK_END);
+        int buffersize = ftell(room);
+        rewind(room);
+        char * buffer = (char*) malloc (sizeof(char)*buffersize);
+        fread (buffer,1,buffersize,room);
+        for(int i=0;i<buffersize;i++){
+            Memory[i+PC] = buffer[i];
+        }
     }
+
 
 
 
@@ -174,14 +178,6 @@ int main( int argc, char* args[] ){
             window.clear_screen();
 
             opcode = Memory[PC] << 8 | Memory[PC+1];
-
-            //printf("0x%04X\n",int(opcode));
-            
-            printf(
-                "PC:0x%04X %i - 0x%04X\n", 
-                PC, PC,
-                opcode
-            );
 
             switch(opcode&0xF000){
 
@@ -322,7 +318,6 @@ int main( int argc, char* args[] ){
 
                         case 0x0033:
                             {
-                                printf("-------------SETING MEMROY\n");
                                 int x = (opcode&0x0F00)>>8;
                                 
                                 int TEN = V[x]/100;
@@ -335,7 +330,6 @@ int main( int argc, char* args[] ){
                                 break;
                             }
                         case 0x0055:
-                            printf("-------------SETING MEMROY\n");
                             for(int i=0;i<=((opcode&0x0F00)>>8);i++){
 
                                 //Memory[INDEX+i] = V[i];
@@ -345,7 +339,6 @@ int main( int argc, char* args[] ){
                         case 0x0065:
                             {
                                 int x = (opcode&0x0F00)>>8;
-                                printf("-------------SETING MEMROY\n");
                                 for(int i=0;i<=x;i++){
                                     V[i] = Memory[INDEX+i];
                                 }
