@@ -50,8 +50,8 @@ class Chip8{
             0xF0, 0x80, 0xF0, 0x80, 0xF0, //E
             0xF0, 0x80, 0xF0, 0x80, 0x80  //F
         };
-        unsigned long screen[h]; // 8 bytes
-
+        unsigned long screen[32]; // 8 bytes
+        
         bool step = false;
         
         void init(){
@@ -68,6 +68,7 @@ class Chip8{
             }
             
             for(int i=0;i<4096;i++){
+
                 memory[i] = (char) 0;
             }
             
@@ -77,6 +78,7 @@ class Chip8{
         }
         
         bool load_rom(char* path){
+            std::cout << path << std::endl;
             FILE* rom = fopen(path, "rb");
             if(rom){
                 fseek(rom, 0, SEEK_END);
@@ -121,7 +123,7 @@ class Chip8{
                 }
 
                 case 0xA000:{
-                    INDEX = op&0x0FFF;
+                    I = op&0x0FFF;
                     pc+=2;
                     break;
                 }
@@ -218,9 +220,9 @@ class Chip8{
                             int HUN = (V[x]/10) - TEN*10;
                             int DEC = V[x] - HUN*10 - TEN*100;
                         
-                            Memory[ I ] = TEN;
-                            Memory[I+1] = HUN;
-                            Memory[I+2] = DEC;
+                            memory[ I ] = TEN;
+                            memory[I+1] = HUN;
+                            memory[I+2] = DEC;
                             break;
                         }
                         case 0x0055:{
@@ -344,7 +346,7 @@ class Chip8{
                         }
 
                         case 0x0006:{
-                            V[0xF] = V[(op&0x0F00)>>8]&0x01)
+                            V[0xF] = V[(op&0x0F00)>>8]&0x01;
                             V[(op&0x0F00)>>8] = V[(op&0x0F00)>>8] >> 1;
                             break;
                         }
@@ -397,99 +399,30 @@ int main( int argc, char* args[] ){
     int SCREEN_HEIGHT = 600;
     int TEXT_SIZE     =  15;
     int upscale       =   5;
-    const int emuH    =  32;
-    const int emuW    =  64;
-    int AnchoP        = emuW*upscale;
-    int LargoP        = emuH*upscale;
     int scrollIndex   =   0x2E7;    
-    bool exit = false;
-    bool step = false;
-    
+    bool exit = false;   
     std::string NAME = "Chip 8";
     
     /*
         CHIP 8 INIT
     */
     
-    unsigned char Memory[4096];
-    unsigned char V[16];
-    int Stack[16];
-    int Key[16];
-    unsigned long Chip8_pantalla[emuH]; // 8 bytes
+    Chip8 chip8;
+    int AnchoP        = chip8.w*upscale;
+    int LargoP        = chip8.h*upscale;
     
-    unsigned char chip8_fontset[80] = {
-        0xF0, 0x90, 0x90, 0x90, 0xF0, //0
-        0x20, 0x60, 0x20, 0x20, 0x70, //1
-        0xF0, 0x10, 0xF0, 0x80, 0xF0, //2
-        0xF0, 0x10, 0xF0, 0x10, 0xF0, //3
-        0x90, 0x90, 0xF0, 0x10, 0x10, //4
-        0xF0, 0x80, 0xF0, 0x10, 0xF0, //5
-        0xF0, 0x80, 0xF0, 0x90, 0xF0, //6
-        0xF0, 0x10, 0x20, 0x40, 0x40, //7
-        0xF0, 0x90, 0xF0, 0x90, 0xF0, //8
-        0xF0, 0x90, 0xF0, 0x10, 0xF0, //9
-        0xF0, 0x90, 0xF0, 0x90, 0x90, //A
-        0xE0, 0x90, 0xE0, 0x90, 0xE0, //B
-        0xF0, 0x80, 0x80, 0x80, 0xF0, //C
-        0xE0, 0x90, 0x90, 0x90, 0xE0, //D
-        0xF0, 0x80, 0xF0, 0x80, 0xF0, //E
-        0xF0, 0x80, 0xF0, 0x80, 0x80  //F
-    };
-
-
-    int PC          = 0x200;
-    int opcode      = 0;
-    int INDEX       = 0;
-    int StackP      = 0;
-    int delay_timer = 0;
-    int sound_timer = 0;
-
     /*
         LOAD MEMORY
     */
-
-    for(int y = 0;y < emuH;y++){
-        Chip8_pantalla[y] = 0ULL;
-    }
-
-    for(int i=0; i<16;i++){
-        V[i]      = (char) 0;
-    }
-    
-    for(int i=0; i<16;i++){
-        Stack[i]  = (char) 0;
-    }
-    
-    for(int i=0; i<4096;i++){
-        Memory[i] = (char) 0;
-    }
-    
-    for(int i=0;i<80;i++){
-        Memory[i] = chip8_fontset[i];
-    }
-
+    chip8.init();
     if(argc>1){
-        FILE* rom = fopen(args[1],"rb");
-        if(rom){
-            fseek(rom, 0, SEEK_END);
-            int buffersize = ftell(rom);
-            rewind(rom);
-            char* buffer = (char*) malloc(sizeof(char)*buffersize);
-            fread(buffer,1,buffersize,rom);
-            for(int i=0;i<buffersize;i++){
-                Memory[i+PC] = buffer[i];
-            }
-            free(buffer);
-            fclose(rom);
-        }else{
-            printf("Rom not found\n");
+        if(!chip8.load_rom(args[1])){
             exit = true;
         }
     }else{
         printf("No rom specified\n");
         exit = true;
     }
-
 
     /*
         SDL INIT
@@ -554,14 +487,12 @@ int main( int argc, char* args[] ){
         }else{
             window.clear_screen();
 
-            opcode = Memory[PC] << 8 | Memory[PC+1];
             if(
                 (action->check_action(action->BUTTON_ACTION)) ||
                 (action->get_state(action->BUTTON_START)) ||
-                !step
+                !chip8.step
             ){
-                
-
+                chip8.cycle();
             }
             
             /*
@@ -571,44 +502,44 @@ int main( int argc, char* args[] ){
             int layout_y = 0;
             text_white.render(
                 AnchoP, layout_y,
-                "PC:" + to_format_str("0x%04X", PC) + " " + std::to_string(PC-0x200)
+                "PC:" + to_format_str("0x%04X", chip8.pc) + " " + std::to_string(chip8.pc-0x200)
             );
             layout_y += TEXT_SIZE;
             
             text_white.render(
                 AnchoP, layout_y,
-                "OPCODE:" + to_format_str("0x%04X", opcode)
+                "OPCODE:" + to_format_str("0x%04X", chip8.op)
             );
             layout_y += TEXT_SIZE;
             
             text_white.render(
                 AnchoP, layout_y,
-                "INDEX:" + to_format_str("0x%04X", INDEX)
+                "INDEX:" + to_format_str("0x%04X", chip8.I)
             );
             layout_y += TEXT_SIZE;
 
             text_white.render(
                 AnchoP, layout_y,
-                "StackP:" + to_format_str("0x%04X", StackP)
+                "StackP:" + to_format_str("0x%04X", chip8.sp)
             );
             layout_y += TEXT_SIZE;
 
             text_white.render(
                 AnchoP, layout_y,
-                "TIMER_D:" + to_format_str("0x%04X", delay_timer)
+                "TIMER_D:" + to_format_str("0x%04X", chip8.dt)
             );
             layout_y += TEXT_SIZE;
             
             text_white.render(
                 AnchoP, layout_y,
-                "TIMER_S:" + to_format_str("0x%04X", sound_timer)
+                "TIMER_S:" + to_format_str("0x%04X", chip8.st)
             );
             layout_y += TEXT_SIZE;
             
             for(int i=0; i<16; i++){
                 text_white.render(
                     AnchoP, layout_y,
-                    "V[" + to_format_str("%01X", i) + "]:" + to_format_str("0x%04X", V[i])
+                    "V[" + to_format_str("%01X", i) + "]:" + to_format_str("0x%04X", chip8.V[i])
                 );
                 layout_y += TEXT_SIZE;
             }
@@ -616,7 +547,7 @@ int main( int argc, char* args[] ){
             for(int i=15; i>=0; i--){
                 text_white.render(
                     AnchoP+150, layout_y,
-                    "STACK[" + to_format_str("%01X", i) + "]:" + to_format_str("0x%04X", Stack[i])
+                    "STACK[" + to_format_str("%01X", i) + "]:" + to_format_str("0x%04X", chip8.stack[i])
                 );
                 layout_y += TEXT_SIZE;
             }
@@ -627,8 +558,8 @@ int main( int argc, char* args[] ){
 
             layout_y = 0;
             for(int i=0; i<10; i++){
-                int memory_value_temp = Memory[i + scrollIndex];
-                if(PC == i + scrollIndex){
+                int memory_value_temp = chip8.memory[i + scrollIndex];
+                if(chip8.pc == i + scrollIndex){
                     text_white.render(
                         0, 350+layout_y,
                         to_format_str("*0x%04X", i + scrollIndex) + " " +
@@ -647,10 +578,10 @@ int main( int argc, char* args[] ){
                 layout_y += TEXT_SIZE;
             }
             std::bitset <64> temp_screen;
-            for(int y = 0;y < emuH;y++){
-                temp_screen = std::bitset <64>(Chip8_pantalla[y]);
-                for(int x = 0;x < emuW; x++){
-                    if(temp_screen[emuW-x-1] == 0){
+            for(int y = 0;y < chip8.h;y++){
+                temp_screen = std::bitset <64>(chip8.screen[y]);
+                for(int x = 0;x < chip8.w; x++){
+                    if(temp_screen[chip8.w-x-1] == 0){
                         block_black.render(
                             x*upscale,
                             y*upscale
@@ -663,8 +594,6 @@ int main( int argc, char* args[] ){
                     }
                 }
             }
-            //printf("--------------------------------\n");
-            
             
             if((action->get_state(action->BUTTON_MOVE_UP))&&(scrollIndex>0)){
                 scrollIndex--;
