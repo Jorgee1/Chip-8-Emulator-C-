@@ -95,7 +95,7 @@ int main( int argc, char* args[] ){
     FILE* rom = fopen("asset/rom/PONG2","rb");
     
     if(rom){
-        fseek(rom , 0, SEEK_END);
+        fseek(rom, 0, SEEK_END);
         int buffersize = ftell(rom);
         rewind(rom);
         char* buffer = (char*) malloc(sizeof(char)*buffersize);
@@ -105,10 +105,9 @@ int main( int argc, char* args[] ){
         }
         free(buffer);
         fclose(rom);
+    }else{
+        printf("Rom not found");
     }
-
-
-
 
     /*
         SDL INIT
@@ -366,8 +365,9 @@ int main( int argc, char* args[] ){
                         PC+=2;
                         break;
                     }
-
-                    /// ALU /////////////////////////
+                    /*
+                        ALU
+                    */
                     case 0x8000:{
                         switch(opcode&0x000F){
 
@@ -394,7 +394,7 @@ int main( int argc, char* args[] ){
                             case 0x0004:{
                                 int x1 = V[(opcode&0x0F00)>>8]&0xFF;
                                 int y1 = V[(opcode&0x00F0)>>4]&0xFF;
-                                int z = 0;                                                                          /// add
+                                int z = 0;
                                 if( (x1+y1) > 0xFF ){
                                     V[0xF] = 0x01;
                                 }else{
@@ -407,7 +407,7 @@ int main( int argc, char* args[] ){
 
                             case 0x0005:{
                                 int x2 = V[(opcode&0x0F00)>>8]&0xFF;
-                                int y2 = V[(opcode&0x00F0)>>4]&0xFF;                                                                           /// sub
+                                int y2 = V[(opcode&0x00F0)>>4]&0xFF;
                                 if( x2 > y2){
                                     V[0xF] = 0x01;
                                 }else{
@@ -417,7 +417,7 @@ int main( int argc, char* args[] ){
                                 break;
                             }
 
-                            case 0x0006:{                                                                               /// div2
+                            case 0x0006:{
                                 V[0xF] = (V[(opcode&0x0F00)>>8]&0x01);
                                 V[(opcode&0x0F00)>>8] = V[(opcode&0x0F00)>>8] >> 1;
                                 break;
@@ -425,7 +425,7 @@ int main( int argc, char* args[] ){
 
                             case 0x0007:{
                                 int x3 = V[(opcode&0x00F0)>>4]&0xFF;
-                                int y3 = V[(opcode&0x0F00)>>8]&0xFF;                                                                      /// sub
+                                int y3 = V[(opcode&0x0F00)>>8]&0xFF;
                                 if( y3 > x3){
                                     V[0xF] = 0x01;
                                 }else{
@@ -435,7 +435,7 @@ int main( int argc, char* args[] ){
                                 break;
                             }
 
-                            case 0x000E:{                                                                                 /// mult*2
+                            case 0x000E:{
                                 V[0xF] = ((V[(opcode&0x0F00)>>8]&0x80)>>7);
                                 V[(opcode&0x0F00)>>8] = (V[(opcode&0x0F00)>>8] << 1)&0xFF;
                                 break;
@@ -445,8 +445,6 @@ int main( int argc, char* args[] ){
                         PC+=2;
                         break;
                     }
-                    /// ALU /////////////////////////
-
                     case 0x9000:{
                         if( V[(opcode&0x0F00)>>8] != V[(opcode&0x00F0)>>4] ){
                             PC+=2;
