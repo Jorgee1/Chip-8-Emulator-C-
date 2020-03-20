@@ -4,6 +4,8 @@
 
 #include <string>
 #include <bitset>
+#include <stdint.h>
+#include <iostream>
 
 #include "window.h"
 #include "texture.h"
@@ -27,7 +29,7 @@ int main( int argc, char* args[] ){
     int LargoP        = emuH*upscale;
     int scrollIndex   =   0x2E7;    
     bool exit = false;
-
+    bool step = false;
     /*
         CHIP 8 INIT
     */
@@ -36,7 +38,7 @@ int main( int argc, char* args[] ){
     unsigned char V[16];
     int Stack[16];
     int Key[16];
-    uint64_t Chip8_pantalla[emuH]; // 4 bytes
+    unsigned long Chip8_pantalla[emuH]; // 8 bytes
     
     unsigned char chip8_fontset[80] = {
         0xF0, 0x90, 0x90, 0x90, 0xF0, //0
@@ -70,7 +72,7 @@ int main( int argc, char* args[] ){
     */
 
     for(int y = 0;y < emuH;y++){
-        Chip8_pantalla[y] = 0;
+        Chip8_pantalla[y] = 0ULL;
     }
 
     for(int i=0; i<16;i++){
@@ -93,7 +95,7 @@ int main( int argc, char* args[] ){
     FILE* rom = fopen("asset/rom/PONG2","rb");
     
     if(rom){
-        fseek(rom , 0 , SEEK_END);
+        fseek(rom , 0, SEEK_END);
         int buffersize = ftell(rom);
         rewind(rom);
         char* buffer = (char*) malloc(sizeof(char)*buffersize);
@@ -170,7 +172,8 @@ int main( int argc, char* args[] ){
             opcode = Memory[PC] << 8 | Memory[PC+1];
             if(
                 (action->check_action(action->BUTTON_ACTION)) ||
-                (action->get_state(action->BUTTON_START))
+                (action->get_state(action->BUTTON_START)) ||
+                !step
             ){
                 
                 switch(opcode&0xF000){
@@ -218,36 +221,27 @@ int main( int argc, char* args[] ){
                         unsigned int y = V[(opcode & 0x00F0)>>4];
                         unsigned int n = (opcode & 0x000F);
 
-
-                        uint64_t temp_char = 0;
                         V[0xF] = 0x0;
                         
+                        unsigned long temp_char = 0ULL;                     
+                        int fase = emuW-8-x;
+
                         
                         for(int i=0; i<n; i++){
                         
-		                    if (y+i>=emuH){
-		                        y = y - i - emuH*(y/(emuH-1));
+	                        if (y>=emuH){
+	                            y = y - emuH*(y/(emuH-1));
+	                        }
+                        
+		                    temp_char = Memory[INDEX+i];
+
+		                    if (fase>=0){
+    		                    Chip8_pantalla[y+i] ^=(temp_char<<fase);
+		                    }else{
+		                        Chip8_pantalla[y+i] ^=(temp_char>>fase*-1);
 		                    }
 
-		                    temp_char = (uint64_t)Memory[INDEX+i];
-		                    printf(
-		                        "0x%017X, 0x%017X, %i\n",
-		                        Chip8_pantalla[y+i],
-		                        (temp_char<<25),
-		                        x
-		                    );
-		                    Chip8_pantalla[y+i] = Chip8_pantalla[y+i] ^ 
-		                        ((uint64_t)Memory[INDEX+i]<<emuW-x-8); 
-
-		                    printf(
-		                        "0x%017X\n",
-		                        Chip8_pantalla[y+i]
-		                    );
-
-
-                            
-                        }                       
-                        printf("--------------------------------\n");
+                        }
                         PC+=2;
                         break;
                     }
@@ -546,9 +540,8 @@ int main( int argc, char* args[] ){
             std::bitset <64> temp_screen;
             for(int y = 0;y < emuH;y++){
                 temp_screen = std::bitset <64>(Chip8_pantalla[y]);
-                //printf("%s\n", std::bitset <64>(Chip8_pantalla[y]).to_string().c_str());
                 for(int x = 0;x < emuW; x++){
-                    if(temp_screen[emuW-x] == 0){
+                    if(temp_screen[emuW-x-1] == 0){
                         block_black.render(
                             x*upscale,
                             y*upscale
