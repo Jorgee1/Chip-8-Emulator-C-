@@ -92,22 +92,29 @@ int main( int argc, char* args[] ){
     }
 
 
-    FILE* rom = fopen("asset/rom/PONG2","rb");
-    
-    if(rom){
-        fseek(rom, 0, SEEK_END);
-        int buffersize = ftell(rom);
-        rewind(rom);
-        char* buffer = (char*) malloc(sizeof(char)*buffersize);
-        fread(buffer,1,buffersize,rom);
-        for(int i=0;i<buffersize;i++){
-            Memory[i+PC] = buffer[i];
+
+    if(argc>1){
+        FILE* rom = fopen(args[1],"rb");
+        if(rom){
+            fseek(rom, 0, SEEK_END);
+            int buffersize = ftell(rom);
+            rewind(rom);
+            char* buffer = (char*) malloc(sizeof(char)*buffersize);
+            fread(buffer,1,buffersize,rom);
+            for(int i=0;i<buffersize;i++){
+                Memory[i+PC] = buffer[i];
+            }
+            free(buffer);
+            fclose(rom);
+        }else{
+            printf("Rom not found\n");
+            exit = true;
         }
-        free(buffer);
-        fclose(rom);
     }else{
-        printf("Rom not found");
+        printf("No rom specified\n");
+        exit = true;
     }
+
 
     /*
         SDL INIT
