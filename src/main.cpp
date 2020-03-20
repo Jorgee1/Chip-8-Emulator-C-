@@ -264,50 +264,55 @@ int main( int argc, char* args[] ){
 
                     case 0xF000:{
                         switch(opcode&0x00FF){
-                            case 0x0007:
-                                //V[(opcode&0x0F00)>>8] = delay_timer;
-                                V[(opcode&0x0F00)>>8] = 0;
+                            case 0x0007: {
+                                V[(opcode&0x0F00)>>8] = delay_timer;
                                 break;
-                            case 0x000A: break;
-                            case 0x0015: delay_timer = V[(opcode&0x0F00)>>8];break;
-                            case 0x0018: break;
-
-                            case 0x001E:
-                                INDEX = INDEX+V[(opcode&0x0F00)>>8];
+                            }
+                            case 0x000A: {
+                                // Wait for key press
                                 break;
-
-                            case 0x0029:
+                            }
+                            case 0x0015: {
+                                delay_timer = V[(opcode&0x0F00)>>8];
+                                break;
+                            }
+                            case 0x0018: {
+                                sound_timer = V[(opcode&0x0F00)>>8];
+                                break;
+                            }
+                            case 0x001E:{
+                                INDEX = INDEX + V[(opcode&0x0F00)>>8];
+                                break;
+                            }
+                            case 0x0029:{
                                 INDEX = V[(opcode&0x0F00)>>8]*0x5;
                                 break;
-
-                            case 0x0033:
-                                {
-                                    int x = (opcode&0x0F00)>>8;
-                                    
-                                    int TEN = V[x]/100;
-                                    int HUN = (V[x]/10) - TEN*10;
-                                    int DEC = V[x] - HUN*10 - TEN*100;
+                            }
+                            case 0x0033:{
+                                int x = (opcode&0x0F00)>>8;
                                 
-                                    Memory[INDEX  ] = TEN;
-                                    Memory[INDEX+1] = HUN;
-                                    Memory[INDEX+2] = DEC;
-                                    break;
-                                }
-                            case 0x0055:
+                                int TEN = V[x]/100;
+                                int HUN = (V[x]/10) - TEN*10;
+                                int DEC = V[x] - HUN*10 - TEN*100;
+                            
+                                Memory[INDEX  ] = TEN;
+                                Memory[INDEX+1] = HUN;
+                                Memory[INDEX+2] = DEC;
+                                break;
+                            }
+                            case 0x0055:{
                                 for(int i=0;i<=((opcode&0x0F00)>>8);i++){
-
-                                    //Memory[INDEX+i] = V[i];
+                                    Memory[INDEX+i] = V[i];
                                 }
                                 break;
-
-                            case 0x0065:
-                                {
-                                    int x = (opcode&0x0F00)>>8;
-                                    for(int i=0;i<=x;i++){
-                                        V[i] = Memory[INDEX+i];
-                                    }
-                                    break;
+                            }
+                            case 0x0065:{
+                                int x = (opcode&0x0F00)>>8;
+                                for(int i=0;i<=x;i++){
+                                    V[i] = Memory[INDEX+i];
                                 }
+                                break;
+                            }
 
                         }
                         PC+=2;
@@ -453,6 +458,10 @@ int main( int argc, char* args[] ){
                 }
                 if(delay_timer > 0){
                     delay_timer--;
+                }
+                if(sound_timer > 0){
+                    printf("Beep\n");
+                    sound_timer--;
                 }
             }
             
