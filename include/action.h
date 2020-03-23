@@ -13,13 +13,27 @@ class Action{
     public:
 
         enum action_ids{
+            BUTTON_0,
+            BUTTON_1,
+            BUTTON_2,
+            BUTTON_3,
+            BUTTON_4,
+            BUTTON_5,
+            BUTTON_6,
+            BUTTON_7,
+            BUTTON_8,
+            BUTTON_9,
+            BUTTON_A,
+            BUTTON_B,
+            BUTTON_C,
+            BUTTON_D,
+            BUTTON_E,
+            BUTTON_F,
+            
             BUTTON_ACTION,
-            BUTTON_CANCEL,
             BUTTON_START,
             BUTTON_MOVE_UP,
-            BUTTON_MOVE_DOWN,
-            BUTTON_MOVE_LEFT,
-            BUTTON_MOVE_RIGHT,
+            BUTTON_MOVE_DOWN,        
             TOTAL_BUTTONS
         };
 
@@ -33,13 +47,11 @@ class Action{
         ~Action();
 
         void init(
-            int key_action_button,
-            int key_cancel_button,
-            int  key_start_button,
-            int       key_move_up,
-            int     key_move_down,
-            int     key_move_left,
-            int    key_move_right
+            int, int, int, int,
+            int, int, int, int,
+            int, int, int, int,
+            int, int, int, int,
+            int, int, int, int
         );
 
         bool get_state(int key_id);

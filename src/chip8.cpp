@@ -1,38 +1,60 @@
 #include "chip8.h"
 
 Chip8::Chip8(){
+    srand(time(0));
+    
     for(int y=0;y<h;y++){
         screen[y] = 0;
     }
 
     for(int i=0;i<16;i++){
-        V[i]      = (char) 0;
+        V[i] = 0;
     }
     
     for(int i=0;i<16;i++){
-        stack[i]  = (char) 0;
+        stack[i] = 0;
+    }
+    
+    for(int i=0;i<16;i++){
+        key[i]  = 0;
     }
     
     for(int i=0;i<4096;i++){
         if(i<80){
             memory[i] = font[i];
         }else{
-            memory[i] = (char) 0;
+            memory[i] = 0;
         }
     }
 }
 
 bool Chip8::load_rom(char* path){
     FILE* rom = fopen(path, "rb");
+    int size = 0;
+    char* buffer = nullptr;
+    
     if(rom){
-        fseek(rom, 0, SEEK_END);
-        int buffersize = ftell(rom);
+        fseek(
+            rom, 0,
+            SEEK_END
+        );
+        size = ftell(rom);
         rewind(rom);
-        char* buffer = (char*) malloc(sizeof(char)*buffersize);
-        fread(buffer,1,buffersize,rom);
-        for(int i=0;i<buffersize;i++){
+        
+        buffer = (char*) malloc(
+            sizeof(char)*size
+        );
+        
+        fread(
+            buffer, 1,
+            size,
+            rom
+        );
+        
+        for(int i=0; i<size; i++){
             memory[pc+i] = buffer[i];
         }
+        
         free(buffer);
         fclose(rom);
         return true;
@@ -210,22 +232,29 @@ void Chip8::cpuD_code(){
     unsigned int y = V[(op & 0x00F0)>>4];
     unsigned int n = (op & 0x000F);
 
-    V[0xF] = 0x0;
+    V[0xF] = 0;
     
-    unsigned long temp_char = 0ULL;                     
+    unsigned long temp_sprite = 0;
+    unsigned long temp_screen = 0;                   
     int fase = w-8-x;
 
-
+    
     for(int i=0; i<n; i++){
-        if (y>=h){
-            y = y - h*(y/(h));
+        if (y+i>=h){
+            y =  i*(y/h) - i;
         }
-        temp_char = memory[I+i];
+
+        temp_screen = screen[y+i];
+        temp_sprite = memory[I+i];
 
         if (fase>=0){
-            screen[y+i] ^=(temp_char<<fase);
+            screen[y+i] ^=(temp_sprite<<fase);
         }else{
-            screen[y+i] ^=(temp_char>>fase*-1);
+            screen[y+i] ^=(temp_sprite>>fase*-1);
+        }
+                
+        if (temp_screen>screen[y+i]){
+            V[0xF] = 1;
         }
 
     }
@@ -234,14 +263,14 @@ void Chip8::cpuD_code(){
 
 void Chip8::cpuE_code(){
     switch(op&0x00FF){
-        case 0x00A1:
+        case 0x009E:
             if(key[V[(op&0x0F00)>>8]]==1){
-                pc+=2;
+               pc+=2;
             }
             break;
-        case 0x009E:
-            if(key[V[(op&0x0F00)>>8]]!=1){
-               pc+=2;
+        case 0x00A1:
+            if(key[V[(op&0x0F00)>>8]]==0){
+                pc+=2;
             }
             break;
     }
@@ -252,26 +281,38 @@ void Chip8::cpuF_code(){
     switch(op&0x00FF){
         case 0x0007: {
             V[(op&0x0F00)>>8] = dt;
+            pc+=2;
             break;
         }
         case 0x000A: {
-            // Wait for key press
+            int x = (op&0x0F00)>>8;
+            for(int i=0;i<16;i++){
+                if(key[i]==1){
+                    V[x] = i;
+                    pc+=2;
+                    break;
+                }
+            }
             break;
         }
         case 0x0015: {
             dt = V[(op&0x0F00)>>8];
+            pc+=2;
             break;
         }
         case 0x0018: {
             st = V[(op&0x0F00)>>8];
+            pc+=2;
             break;
         }
         case 0x001E:{
             I += V[(op&0x0F00)>>8];
+            pc+=2;
             break;
         }
         case 0x0029:{
             I = V[(op&0x0F00)>>8]*0x5;
+            pc+=2;
             break;
         }
         case 0x0033:{
@@ -284,12 +325,14 @@ void Chip8::cpuF_code(){
             memory[ I ] = TEN;
             memory[I+1] = HUN;
             memory[I+2] = DEC;
+            pc+=2;
             break;
         }
         case 0x0055:{
             for(int i=0;i<=((op&0x0F00)>>8);i++){
                 memory[I+i] = V[i];
             }
+            pc+=2;
             break;
         }
         case 0x0065:{
@@ -297,17 +340,23 @@ void Chip8::cpuF_code(){
             for(int i=0;i<=x;i++){
                 V[i] = memory[I+i];
             }
+            pc+=2;
             break;
         }
 
     }
-    pc+=2;
 }
-        
-void Chip8::cycle(){
+
+void Chip8::fetch(){
     op = memory[pc] << 8 | memory[pc+1];
-    (this->*Chip8Table[(op&0xF000)>>12])();
+}
+
+void Chip8::cycle(){
+
+    fetch();
     
+    (this->*Chip8Table[(op&0xF000)>>12])();
+
     if(dt > 0){
         dt--;
     }

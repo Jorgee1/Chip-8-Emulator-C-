@@ -24,21 +24,35 @@ Action* Action::get_instance(){
 }
 
 void Action::init(
-        int key_action_button,
-        int key_cancel_button,
-        int  key_start_button,
-        int       key_move_up,
-        int     key_move_down,
-        int     key_move_left,
-        int    key_move_right
+        int key_0, int key_1, int key_2, int key_3,
+        int key_4, int key_5, int key_6, int key_7,
+        int key_8, int key_9, int key_A, int key_B,
+        int key_C, int key_D, int key_E, int key_F,
+        
+        int key_action, int key_start, int key_up, 
+        int key_down
     ){
-    actions[BUTTON_ACTION]     = key_action_button;
-    actions[BUTTON_CANCEL]     = key_cancel_button;
-    actions[BUTTON_START]      =  key_start_button;
-    actions[BUTTON_MOVE_UP]    =       key_move_up;
-    actions[BUTTON_MOVE_DOWN]  =     key_move_down;
-    actions[BUTTON_MOVE_LEFT]  =     key_move_left;
-    actions[BUTTON_MOVE_RIGHT] =    key_move_right;
+    actions[BUTTON_0] = key_0;
+    actions[BUTTON_1] = key_1;
+    actions[BUTTON_2] = key_2;
+    actions[BUTTON_3] = key_3;
+    actions[BUTTON_4] = key_4;
+    actions[BUTTON_5] = key_5;
+    actions[BUTTON_6] = key_6;
+    actions[BUTTON_7] = key_7;
+    actions[BUTTON_8] = key_8;
+    actions[BUTTON_9] = key_9;
+    actions[BUTTON_A] = key_A;
+    actions[BUTTON_B] = key_B;
+    actions[BUTTON_C] = key_C;
+    actions[BUTTON_D] = key_D;
+    actions[BUTTON_E] = key_E;
+    actions[BUTTON_F] = key_F;
+    
+    actions[BUTTON_ACTION]    = key_action;
+    actions[BUTTON_START]     = key_start;
+    actions[BUTTON_MOVE_UP]   = key_up;
+    actions[BUTTON_MOVE_DOWN] = key_down;
 }
 
 bool Action::get_state(int key_id){

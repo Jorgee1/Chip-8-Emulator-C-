@@ -22,14 +22,8 @@ MAIN_OBJ = $(SOURCE_PATH)/$(ENTRY_FILE)
 TEST_OBJ = $(TEST_PATH)/$(ENTRY_FILE)
 
 ### Program ##################
-
-compile_run: compile run
-
 compile: required
 	$(CXX) $(MAIN_OBJ) $(OBJECTS) -o $(BUILD_FOLDER)/$(PROGRAM_NAME) -I $(INCLUDE_PATH) $(CXXFLAGS) $(LIBS) -I$(SDL_PATH)
-
-run:
-	./$(BUILD_FOLDER)/$(PROGRAM_NAME)
 
 required:
 	mkdir -p $(BUILD_FOLDER)
@@ -48,3 +42,11 @@ run_test:
 
 clean_test:
 	rm $(TEST_NAME)
+
+
+
+
+
+
+
+

@@ -1,24 +1,29 @@
 #include <cstdio>
 #include <stdlib.h>
+#include <ctime>
 
 #ifndef CHIP8_H
 #define CHIP8_H
 
 class Chip8{
     public:
-        int pc = 0x200;
-        int op = 0;
-        int I  = 0;
-        int sp = 0;
+        unsigned int pc = 0x200;
+        unsigned int op = 0;
+        unsigned int I  = 0;
+        unsigned int sp = 0;
+        unsigned int stack[16];
+        unsigned int key[16];
+        unsigned int V[16];
+        
         int dt = 0;
         int st = 0;
-        int stack[16];
-        int key[16];
+
         const int h = 32;
         const int w = 64;
-
+        
+        bool step = false;
+        
         unsigned char memory[4096];
-        unsigned char V[16];
         unsigned char font[80] = {
             0xF0, 0x90, 0x90, 0x90, 0xF0, //0
             0x20, 0x60, 0x20, 0x20, 0x70, //1
@@ -38,8 +43,7 @@ class Chip8{
             0xF0, 0x80, 0xF0, 0x80, 0x80  //F
         };
         unsigned long screen[32]; // 8 bytes
-        
-        bool step = true;
+       
         
         void (Chip8::*Chip8Table[16]) () = {
             &Chip8::cpu0_code, &Chip8::cpu1_code,
@@ -72,7 +76,8 @@ class Chip8{
         void cpuD_code();
         void cpuE_code();
         void cpuF_code();
-                
+        
+        void fetch();
         void cycle();
 };
 

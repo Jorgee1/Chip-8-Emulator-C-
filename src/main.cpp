@@ -21,7 +21,7 @@ int main( int argc, char* args[] ){
     int SCREEN_HEIGHT = 600;
     int TEXT_SIZE     =  15;
     int upscale       =   5;
-    int scrollIndex   =   0x2E7;    
+    int scrollIndex   = 0x2E7;    
     bool exit = false;   
     std::string NAME = "Chip 8";
     
@@ -30,6 +30,8 @@ int main( int argc, char* args[] ){
     */
     
     Chip8 chip8;
+    chip8.step = false;
+    
     int AnchoP = chip8.w*upscale;
     int LargoP = chip8.h*upscale;
     
@@ -79,15 +81,16 @@ int main( int argc, char* args[] ){
 
     Action* action = Action::get_instance();
     action->init(
-        SDL_SCANCODE_Z,
-        SDL_SCANCODE_X,
-        SDL_SCANCODE_RETURN,
-        SDL_SCANCODE_UP,
-        SDL_SCANCODE_DOWN,
-        SDL_SCANCODE_LEFT,
-        SDL_SCANCODE_RIGHT
+        SDL_SCANCODE_1, SDL_SCANCODE_2, SDL_SCANCODE_3, SDL_SCANCODE_4,
+        SDL_SCANCODE_Q, SDL_SCANCODE_W, SDL_SCANCODE_E, SDL_SCANCODE_R,
+        SDL_SCANCODE_A, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_F,
+        SDL_SCANCODE_Z, SDL_SCANCODE_X, SDL_SCANCODE_C, SDL_SCANCODE_V,
+        
+        SDL_SCANCODE_P, SDL_SCANCODE_RETURN,
+        SDL_SCANCODE_UP, SDL_SCANCODE_DOWN
     );
-
+       
+        
     TextureBlock block_black(
         window.get_render(),
         COLOR_BLACK,
@@ -107,7 +110,8 @@ int main( int argc, char* args[] ){
             exit = true;
         }else{
             window.clear_screen();
-
+            chip8.fetch();
+            
             if(
                 (action->check_action(action->BUTTON_ACTION)) ||
                 (action->get_state(action->BUTTON_START)) ||
@@ -116,6 +120,10 @@ int main( int argc, char* args[] ){
                 chip8.cycle();
             }
             
+            for(int i=0;i<16;i++){
+                chip8.key[i] = action->get_state(i);
+            }
+
             /*
                 Render Grafics
             */
@@ -167,13 +175,32 @@ int main( int argc, char* args[] ){
                 );
                 layout_y += TEXT_SIZE;
             }
+            
+            layout_y += TEXT_SIZE;
+            for(int i=0; i<16; i++){
+                text_white.render(
+                    AnchoP, layout_y,
+                    "Key[" + to_format_str("%01X", i) + "]:" +
+                    to_format_str("0x%04X", chip8.key[i])
+                );
+                layout_y += TEXT_SIZE;
+            }
+            
             layout_y = 0;
             for(int i=15; i>=0; i--){
-                text_white.render(
-                    AnchoP+150, layout_y,
-                    "STACK[" + to_format_str("%01X", i) + "]:" +
-                    to_format_str("0x%04X", chip8.stack[i])
-                );
+                if (chip8.sp == i){
+                    text_white.render(
+                        AnchoP+150, layout_y,
+                        "*STACK[" + to_format_str("%01X", i) + "]:" +
+                        to_format_str("0x%04X", chip8.stack[i])
+                    );
+                }else{
+                    text_white.render(
+                        AnchoP+150, layout_y,
+                        " STACK[" + to_format_str("%01X", i) + "]:" +
+                        to_format_str("0x%04X", chip8.stack[i])
+                    );
+                }
                 layout_y += TEXT_SIZE;
             }
             
@@ -188,6 +215,13 @@ int main( int argc, char* args[] ){
                     text_white.render(
                         0, 350+layout_y,
                         to_format_str("*0x%04X", i + scrollIndex) + " " +
+                        to_format_str("0x%02X", memory_value_temp) + " " +
+                        std::bitset <8>(memory_value_temp).to_string()
+                    );
+                }else if (chip8.I == i + scrollIndex){
+                    text_white.render(
+                        0, 350+layout_y,
+                        to_format_str("I0x%04X", i + scrollIndex) + " " +
                         to_format_str("0x%02X", memory_value_temp) + " " +
                         std::bitset <8>(memory_value_temp).to_string()
                     );
@@ -220,6 +254,11 @@ int main( int argc, char* args[] ){
                 }
             }
 
+            if((action->get_state(action->BUTTON_MOVE_UP))&&(scrollIndex>0)){
+                scrollIndex--;
+            }else if((action->get_state(action->BUTTON_MOVE_DOWN))&&(scrollIndex<0xFFFF-10)){
+                scrollIndex++;
+            }
             
             window.update_screen();
         }
