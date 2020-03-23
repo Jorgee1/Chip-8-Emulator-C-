@@ -81,7 +81,6 @@ void Chip8::cpu0_code(){
             pc+=2;
             break;
     }
-    pc+=2;
 }
 
 void Chip8::cpu1_code(){
@@ -291,7 +290,7 @@ void Chip8::cpuD_code(){
     int fase = w-8-x;
 
     
-    for(int i=0; i<n; i++){
+    for(int i=0;i<n;i++){
         if (y+i>=h){
             y =  i*(y/h) - i;
         }
@@ -315,28 +314,35 @@ void Chip8::cpuD_code(){
 
 void Chip8::cpuE_code(){
     switch(op&0x00FF){
-        case 0x009E:
-            if(key[V[(op&0x0F00)>>8]]==1){
+        case 0x009E:{
+            int x = (op&0x0F00)>>8;
+            int vx = V[x];
+            if(key[vx]==1){
                pc+=2;
             }
             break;
-        case 0x00A1:
-            if(key[V[(op&0x0F00)>>8]]==0){
+        }
+        case 0x00A1:{
+            int x = (op&0x0F00)>>8;
+            int vx = V[x];
+            if(key[vx]==0){
                 pc+=2;
             }
             break;
+        }
     }
     pc+=2;
 }
 
 void Chip8::cpuF_code(){
     switch(op&0x00FF){
-        case 0x0007: {
-            V[(op&0x0F00)>>8] = dt;
+        case 0x0007:{
+            int x = (op&0x0F00)>>8;
+            V[x] = dt;
             pc+=2;
             break;
         }
-        case 0x000A: {
+        case 0x000A:{
             int x = (op&0x0F00)>>8;
             for(int i=0;i<16;i++){
                 if(key[i]==1){
@@ -347,23 +353,28 @@ void Chip8::cpuF_code(){
             }
             break;
         }
-        case 0x0015: {
-            dt = V[(op&0x0F00)>>8];
+        case 0x0015:{
+            int x = (op&0x0F00)>>8;
+            dt = V[x];
             pc+=2;
             break;
         }
-        case 0x0018: {
-            st = V[(op&0x0F00)>>8];
+        case 0x0018:{
+            int x = (op&0x0F00)>>8;
+            st = V[x];
             pc+=2;
             break;
         }
         case 0x001E:{
-            I += V[(op&0x0F00)>>8];
+            int x = (op&0x0F00)>>8;
+            I += V[x];
             pc+=2;
             break;
         }
         case 0x0029:{
-            I = V[(op&0x0F00)>>8]*0x5;
+            int x = (op&0x0F00)>>8;
+            I = V[x]*5;
+            printf("%04X\n", I);
             pc+=2;
             break;
         }
@@ -381,7 +392,8 @@ void Chip8::cpuF_code(){
             break;
         }
         case 0x0055:{
-            for(int i=0;i<=((op&0x0F00)>>8);i++){
+            int x = (op&0x0F00)>>8;
+            for(int i=0;i<=x;i++){
                 memory[I+i] = V[i];
             }
             pc+=2;
@@ -404,8 +416,9 @@ void Chip8::fetch(){
 }
 
 void Chip8::cycle(){
-
     fetch();
+    
+    printf(" 0x%04X\n", op);
     
     (this->*Chip8Table[(op&0xF000)>>12])();
 
