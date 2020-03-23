@@ -374,7 +374,6 @@ void Chip8::cpuF_code(){
         case 0x0029:{
             int x = (op&0x0F00)>>8;
             I = V[x]*5;
-            printf("%04X\n", I);
             pc+=2;
             break;
         }
@@ -418,15 +417,13 @@ void Chip8::fetch(){
 void Chip8::cycle(){
     fetch();
     
-    printf(" 0x%04X\n", op);
-    
     (this->*Chip8Table[(op&0xF000)>>12])();
 
     if(dt > 0){
         dt--;
     }
     if(st > 0){
-        //printf("Beep\n");
+        printf("Beep\n");
         st--;
     }
 }
