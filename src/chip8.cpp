@@ -14,12 +14,11 @@ Chip8::Chip8(){
     }
     
     for(int i=0;i<4096;i++){
-
-        memory[i] = (char) 0;
-    }
-    
-    for(int i=0;i<80;i++){
-        memory[i] = font[i];
+        if(i<80){
+            memory[i] = font[i];
+        }else{
+            memory[i] = (char) 0;
+        }
     }
 }
 

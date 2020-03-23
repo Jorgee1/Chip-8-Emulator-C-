@@ -5,8 +5,6 @@
 #include <string>
 #include <bitset>
 
-
-
 #include "window.h"
 #include "texture.h"
 #include "action.h"
