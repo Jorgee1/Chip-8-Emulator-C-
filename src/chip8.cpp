@@ -280,8 +280,8 @@ void Chip8::cpuD_code(){
 
     V[0xF] = 0;
     
-    unsigned long temp_sprite = 0;
-    unsigned long temp_screen = 0;
+    unsigned long long temp_sprite = 0;
+    unsigned long long temp_screen = 0;
 
     if (x>=w){
         x -= (x/w)*w;
@@ -289,7 +289,6 @@ void Chip8::cpuD_code(){
                       
     int fase = w-8-x;
 
-    
     for(int i=0;i<n;i++){
         if (y+i>=h){
             y =  i*(y/h) - i;

@@ -42,7 +42,7 @@ class Chip8{
             0xF0, 0x80, 0xF0, 0x80, 0xF0, //E
             0xF0, 0x80, 0xF0, 0x80, 0x80  //F
         };
-        unsigned long screen[32]; // 8 bytes
+        unsigned long long screen[32]; // 8 bytes
        
         
         void (Chip8::*Chip8Table[16]) () = {

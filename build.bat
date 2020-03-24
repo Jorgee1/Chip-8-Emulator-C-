@@ -2,7 +2,7 @@
 
 set BUILD_FOLDER=build\windows
 set GAME_NAME=chip8.exe
-set CPP_FILES=src\main.cpp src\action.cpp src\window.cpp src\texture.cpp
+set CPP_FILES=src\main.cpp src\action.cpp src\window.cpp src\texture.cpp src\chip8.cpp
 
 set PATH_SDL=%CPP_LIBRARIES%\SDL2-2.0.10
 set PATH_TTF=%CPP_LIBRARIES%\SDL2_ttf-2.0.15
@@ -15,22 +15,11 @@ set INCLUDES=/I. /I.\include /I%PATH_SDL%\include /I%PATH_TTF%\include /I%PATH_I
 set FLAGS=/EHsc
 
 mkdir %BUILD_FOLDER%
-
-cl %FLAGS% %CPP_FILES% /Fe%BUILD_FOLDER%\%GAME_NAME% %INCLUDES% %LIBS% /link %LIB_PATH% /SUBSYSTEM:WINDOWS
-
-
-
-
-xcopy /s libraries\*.dll %BUILD_FOLDER%\ /Y
-
 mkdir %BUILD_FOLDER%\asset
+
+copy libraries\*.dll %BUILD_FOLDER%\ /Y
 xcopy /s asset %BUILD_FOLDER%\asset /Y
 
-
-
-cd %BUILD_FOLDER%
-%game_name%
-cd ..
-cd ..
+cl %FLAGS% %CPP_FILES% /Fe%BUILD_FOLDER%\%GAME_NAME% %INCLUDES% %LIBS% /link %LIB_PATH% /SUBSYSTEM:CONSOLE
 
 del *.obj

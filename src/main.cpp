@@ -4,6 +4,7 @@
 
 #include <string>
 #include <bitset>
+#include <iostream>
 
 #include "window.h"
 #include "texture.h"
@@ -25,7 +26,8 @@ int main( int argc, char* args[] ){
        
     bool exit  = false;
     bool debug = false;
-    
+    bool step  = false;
+
     if (debug){
         upscale = 4;
     }
@@ -35,7 +37,7 @@ int main( int argc, char* args[] ){
     */
     
     Chip8 chip8;
-    chip8.step = false;
+    chip8.step = step;
     
     int AnchoP = chip8.w*upscale;
     int LargoP = chip8.h*upscale;
